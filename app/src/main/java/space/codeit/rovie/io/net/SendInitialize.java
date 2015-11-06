@@ -21,8 +21,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import space.codeit.rovie.ControllerActivity;
+import space.codeit.rovie.io.database.DatabaseHandler;
+import space.codeit.rovie.models.Connection;
 
 
 public class SendInitialize extends AsyncTask<String, Void, Integer> {
@@ -84,6 +89,13 @@ public class SendInitialize extends AsyncTask<String, Void, Integer> {
             statusTextView.setText("Error connecting to host. Make sure the robot is on.");
         } else {
             statusTextView.setVisibility(View.INVISIBLE);
+
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+
+            Connection connection = new Connection(hostAddress, dateFormat.format(date));
+            DatabaseHandler databaseHandler = new DatabaseHandler(activity);
+            databaseHandler.insertNew(connection);
 
             Toast.makeText(activity,
                     "Successfully connected to " + hostAddress,

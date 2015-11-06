@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import space.codeit.rovie.io.database.DatabaseHandler;
 import space.codeit.rovie.io.net.HostDiscovery;
 import space.codeit.rovie.io.net.SendInitialize;
 
@@ -42,10 +43,12 @@ public class SetupActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setup);
 
-        String[] historyListItems = new String[] {"Connection 1", "Connection 2", "Connection 3"};
+        //String[] historyListItems = new String[] {"Connection 1", "Connection 2", "Connection 3"};
+
+        DatabaseHandler dbHandler = new DatabaseHandler(this);
 
         ArrayAdapter<String> historyArray = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, historyListItems);
+                android.R.layout.simple_list_item_1, dbHandler.getAllHistory());
 
         hostText = (EditText) findViewById(R.id.hostText);
         hostButton = (Button) findViewById(R.id.hostButton);
@@ -54,7 +57,7 @@ public class SetupActivity extends ActionBarActivity {
         statusTextView.setTextColor(Color.RED);
         historyView = (ListView) findViewById(R.id.historyListView);
 
-        historyView.setAdapter(historyArray);
+        //historyView.setAdapter(historyArray);
 
         hostButton.setOnClickListener(new View.OnClickListener() {
             @Override
