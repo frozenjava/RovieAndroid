@@ -90,12 +90,13 @@ public class SendInitialize extends AsyncTask<String, Void, Integer> {
         } else {
             statusTextView.setVisibility(View.INVISIBLE);
 
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             Date date = new Date();
 
             Connection connection = new Connection(hostAddress, dateFormat.format(date));
             DatabaseHandler databaseHandler = new DatabaseHandler(activity);
             databaseHandler.insertNew(connection);
+            Log.d("LOGCAT", "Attributes: " + connection.getHostAddress() + " " + connection.getConnectionDate());
 
             Toast.makeText(activity,
                     "Successfully connected to " + hostAddress,

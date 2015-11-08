@@ -43,27 +43,74 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     }
 
-    public void insertNew(Connection connection) {
+    public void deleteItem(Connection connection) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("host", connection.hostAddress);
-        contentValues.put("connectDate", connection.connectionDate);
-        db.insert(HISTORY_TABLE_NAME, null, contentValues);
+        db.execSQL("DELETE FROM " + HISTORY_TABLE_NAME + " WHERE id=\"" + connection.getConnectionId() + "\"");
+        db.close();
     }
 
-    public ArrayList<String> getAllHistory() {
-        ArrayList<String> arrayList = new ArrayList<String>();
+    public void insertNew(Connection connection) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int uid = findExistingId(connection.getHostAddress(), db);
+        if (uid == -1) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("host", connection.getHostAddress());
+            contentValues.put("connectDate", connection.getConnectionDate());
+            db.insert(HISTORY_TABLE_NAME, null, contentValues);
+            Log.d("LOGCAT", "INSERTED TO NEW RECORD: " + contentValues.getAsString("host"));
+        } else {
+            connection.setConnectionId(uid);
+            updateExisting(connection, db);
+        }
+        db.close();
+    }
+
+    private int findExistingId(String host, SQLiteDatabase db) {
+        int id = -1;
+
+        if (host != null) {
+            Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME + " WHERE host = \"" + host + "\"", null);
+            cursor.moveToFirst();
+            if (cursor.moveToNext()) {
+                if (cursor.getString(1) != null) {
+                    id = cursor.getInt(0);
+                }
+            }
+            //}
+            cursor.close();
+        }
+        return id;
+    }
+
+    private void updateExisting(Connection connection, SQLiteDatabase db) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("host", connection.getHostAddress());
+        contentValues.put("connectDate", connection.getConnectionDate());
+
+        db.update(HISTORY_TABLE_NAME, contentValues, "id" + " = ?", new String[]{String.valueOf(connection.getConnectionId())});
+        Log.d("LOGCAT", "UPDATED: " + connection.getConnectionId());
+
+    }
+
+    public ArrayList<Connection> getAllHistory() {
+        ArrayList<Connection> arrayList = new ArrayList<Connection>();
         try {
             SQLiteDatabase db = this.getReadableDatabase();
-            Cursor res = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
-            res.moveToFirst();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + HISTORY_TABLE_NAME, null);
 
-            while (!res.isAfterLast()) {
-                arrayList.add(res.getString(res.getColumnIndex("host")));
-                res.moveToNext();
+            Log.d("LOGCAT", "TOTAL RECORDS: " + cursor.getCount());
+
+            if (cursor.moveToFirst()) {
+                while (cursor.moveToNext()) {
+                    Connection connection = new Connection();
+                    connection.setConnectionId(cursor.getInt(0));
+                    connection.setHostAddress(cursor.getString(1));
+                    connection.setConnectionDate(cursor.getString(2));
+                    arrayList.add(connection);
+                }
             }
 
-            res.close();
+            cursor.close();
         } catch (Exception e) {
             Log.e("LOGCAT", e.getMessage());
         }
